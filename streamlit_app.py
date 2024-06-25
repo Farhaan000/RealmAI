@@ -60,7 +60,7 @@
 import streamlit as st
 from llm import LLMInvoker
 
-st.title("💬 Chatbot")
+st.title("ChatAI 🤖")
 st.caption("🚀 A Streamlit chatbot powered by OpenAI")
 
 if "messages" not in st.session_state:

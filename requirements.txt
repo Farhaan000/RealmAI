@@ -1,1 +1,10 @@
 streamlit
+python-dotenv
+langchain
+transformers
+sentence-transformers
+torch
+faiss-cpu
+numpy
+langchain_community
+pypdf
