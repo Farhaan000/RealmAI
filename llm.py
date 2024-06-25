@@ -1,6 +1,10 @@
 from langchain_community.llms import HuggingFaceHub
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain_community.vectorstores import FAISS
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 class LLMInvoker:
     def __init__(self):
@@ -29,7 +33,7 @@ Answer:
 
         self.llm = HuggingFaceHub(
             repo_id="mistralai/mixtral-8x7b-instruct-v0.1",
-            huggingfacehub_api_token="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",
+            huggingfacehub_api_token=os.getenv("HUGGINGFACEHUB_API_TOKEN"),
             model_kwargs={"temperature": 0.1, "max_length": 1000})
 
         self.vectorstore = FAISS.load_local("faiss_index", self.huggingface_embeddings, allow_dangerous_deserialization=True)
