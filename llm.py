@@ -4,6 +4,7 @@ from langchain_community.vectorstores import FAISS
 from dotenv import load_dotenv
 import os
 import re
+import tiktoken
 
 load_dotenv()
 
@@ -38,27 +39,50 @@ Answer:
             model_kwargs={"temperature": 0.1, "max_length": 1000})
 
         self.vectorstore = FAISS.load_local("faiss_index", self.huggingface_embeddings, allow_dangerous_deserialization=True)
+        
+        self.tokenizer = tiktoken.get_encoding("gpt2")
 
+    def count_tokens(self, text: str) -> int:
+        tokens = self.tokenizer.encode(text)
+        return len(tokens)
+        
     def generate_context_aware_prompt(self, prompt: str) -> str:
-        # print("self.human_ai_history: ", self.human_ai_history)
-        # print("-----------------------------------------------------------------")
+        print("self.human_ai_history: ", self.human_ai_history)
+        print("-----------------------------------------------------------------")
 
-        # Use re.findall() to find all matches in the text
-        regex_history = re.findall(r"Question:\n.*?\?", self.human_ai_history, re.DOTALL)
+        questions = re.findall(r"Question:", self.human_ai_history)
+        answers = re.findall(r"Answer:", self.human_ai_history)
 
-        # Join the extracted questions into a single string
-        extracted_questions = "\n".join(regex_history)
+        # Check if the number of occurrences is greater than 3
+        if len(questions) > 8 and len(answers) > 8:
+            # Find the index of the first occurrence of "Question:" and "Answer:"
+            question_index = self.human_ai_history.find("Question:")
+            answer_index = self.human_ai_history.find("Answer:")
+            
+            # Find the end of the first "Answer:" to remove the entire Q&A pair
+            end_of_first_answer = self.human_ai_history.find("Answer:", answer_index + len("Answer:")) if answer_index != -1 else -1
+            
+            if question_index != -1 and end_of_first_answer != -1:
+                # Remove the first Q&A pair
+                self.human_ai_history = self.human_ai_history[end_of_first_answer:].strip()
 
-        print("Extracted Questions:", extracted_questions)
+
+        print("self.human_ai_history after trnucation: ", self.human_ai_history)
+        ("-----------------------------------------------------------------")
+        regex_history = re.findall(r"Question:(.*?)(?:Question:|Answer:|$)", self.human_ai_history, re.DOTALL)
+
+        # Join captured groups into formatted questions
+        extracted_questions = "\n".join(f"Question:{question.strip()}" for question in regex_history)
+
+        print("extracted_questions :", extracted_questions)
         print("-----------------------------------------------------------------")
         
         context_aware_template = (
-            "Here is the history of questions user has asked:\n\n"
-            "History:\n{extracted_questions}\n\n"
-            "If this new question '{question}' is a follow-up question to the history of questions, "
-            "then replace pronouns with nouns by utilizing the history of questions . If this new question '{question}' is a standalone question, repeat the same new question as it is. "
-            "Make sure there is no explanation in AI-prompt\n"
-            "AIprompt:"
+            "Here are the previous questions user has asked:\n\n"
+            "Previous-Questions:\n{extracted_questions}\n\n"
+            "In this current question '{question}' , "
+            "replace pronoun with noun by utilizing the Previous-Questions and provide context aware new question. if there is no Previous-Questions repeat the new question as it is."
+            "AI-Question:"
         )
 
         # print("context_aware_template: ", context_aware_template)
@@ -79,13 +103,20 @@ Answer:
         print("RelevantDoc ContextAwarePrompt:", context_aware_prompt)
         print("-----------------------------------------------------------------")
         partitioned_prompt = context_aware_prompt.rpartition(
-            "is a follow-up question to the history of questions, then construct an AI-prompt accordingly. "
-            "If it is a standalone question, repeat the same new question as it is. Make sure there is no explanation in AI-prompt"
+            "replace pronoun with noun by utilizing the Previous-Questions and provide context aware new question. if there is no Previous-Questions repeat the new question as it is."
         )[-1]
+        print("partitioned_prompt: ", partitioned_prompt)
+        ("-----------------------------------------------------------------")
+        # Find the starting index of the AI-Question
+        start_index = partitioned_prompt.find("AI-Question:\n") + len("AI-Question:\n")
+        print("start_index:", start_index)
+        # Find the ending index of the AI-Question section
+        end_index = partitioned_prompt.find("\n\n", start_index)
+        print("end_index:", end_index)
+        # Extract the AI-Question part
+        context_aware_prompt_part = partitioned_prompt[start_index:end_index].strip()
 
-        start_index = partitioned_prompt.find("AIprompt:") + len("AIprompt:")
-        context_aware_prompt_part = partitioned_prompt[start_index:].strip()
-        print(f"context_aware_prompt_part: {context_aware_prompt_part}")
+        print("Context aware prompt part:", context_aware_prompt_part)
         print("-----------------------------------------------------------------")
 
         relevant_doc = self.vectorstore.similarity_search(context_aware_prompt_part)
@@ -93,6 +124,9 @@ Answer:
 
         # Format the template with the query and current `self.human_ai_history`
         formatted_template = self.template.format(context=context, history=self.human_ai_history, question=prompt)
+
+        num_tokens = self.count_tokens(formatted_template)
+        print(f"Number of tokens: {num_tokens}")
 
         # Get response from LLM
         response = self.llm(formatted_template)

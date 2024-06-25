@@ -90,6 +90,6 @@ if prompt := st.chat_input():
         st.chat_message("assistant").write(response)
 
     print("Response: ", output)
-    print("****************************" * 9)
+    print("****************************" * )
 
 
