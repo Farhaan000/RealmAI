@@ -9,4 +9,4 @@ numpy
 langchain_community
 pypdf
 tiktoken
-flask
+torchvision

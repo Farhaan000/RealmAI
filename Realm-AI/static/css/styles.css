@@ -84,7 +84,7 @@ body {
 .user-text p {
     margin: 0;
     padding: 10px;
-    background-color: #18123b;
+    background-color: #141414;
     border-radius: 10px;
     color: #c5c5c5;
     word-break: break-word; /* This ensures the text wraps to the next line */
@@ -98,10 +98,6 @@ body {
 
 .user-message .message-content {
     flex-direction: row-reverse; /* Place the SVG after the text */
-}
-
-.user-text p {
-    background-color: #2e2e2e; /* Different background color for user messages */
 }
 
 .chat-footer {
