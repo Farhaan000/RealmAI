@@ -13,16 +13,18 @@ class LLMInvoker:
     def __init__(self):
         self.human_ai_history = ""
         self.human_ai_history_lim = ""
+        self.extracted_prompts = ""
+        self.extracted_prompts_lim = ""
         self.template = """
-Use the following context (delimited by <ctx></ctx>) and the chat history (delimited by <hs></hs>) to answer the question:
-------
-<ctx>
-{context}
-</ctx>
+Use the following chat history (delimited by <hs></hs>) and the context (delimited by <ctx></ctx>) to answer the question:
 ------
 <hs>
 {history}
 </hs>
+------
+<ctx>
+{context}
+</ctx>
 ------
 Question:
 {question}
@@ -56,100 +58,87 @@ Answer:
     def generate_context_aware_prompt(self, prompt: str) -> str:
         print("self.human_ai_history: ", self.human_ai_history)
         print("-----------------------------------------------------------------")
-
-        questions = re.findall(r"Question:", self.human_ai_history)
-        answers = re.findall(r"Answer:", self.human_ai_history)
-
-        # Check if the number of occurrences is greater than 3
-        if len(questions) > 8 and len(answers) > 8:
-            # Find the index of the first occurrence of "Question:" and "Answer:"
-            question_index = self.human_ai_history.find("Question:")
-            answer_index = self.human_ai_history.find("Answer:")
-            
-            # Find the end of the first "Answer:" to remove the entire Q&A pair
-            end_of_first_answer = self.human_ai_history.find("Answer:", answer_index + len("Answer:")) if answer_index != -1 else -1
-            
-            if question_index != -1 and end_of_first_answer != -1:
+    
+        questions = re.findall(r"Question:.*?(?=Answer:|$)", self.human_ai_history, re.DOTALL)
+    
+        # Check if the number of occurrences is greater than 8
+        if len(questions) > 8:
+            # Find the end of the first "Question:" to remove the entire Q&A pair
+            end_of_first_question = self.human_ai_history.find("Answer:", self.human_ai_history.find("Question:")) if self.human_ai_history.find("Question:") != -1 else -1
+    
+            if end_of_first_question != -1:
                 # Remove the first Q&A pair
-                self.human_ai_history = self.human_ai_history[end_of_first_answer:].strip()
-
-
-        print("self.human_ai_history after trnucation: ", self.human_ai_history)
-        ("-----------------------------------------------------------------")
-        regex_history = re.findall(r"Question:(.*?)(?:Question:|Answer:|$)", self.human_ai_history, re.DOTALL)
-
-        # Join captured groups into formatted questions
-        extracted_questions = "\n".join(f"Question:{question.strip()}" for question in regex_history)
-
-        print("extracted_questions :", extracted_questions)
+                self.human_ai_history = self.human_ai_history[end_of_first_question:].strip()
+    
+        print("self.human_ai_history after truncation: ", self.human_ai_history)
         print("-----------------------------------------------------------------")
-        
+    
+        regex_history = re.findall(r"Question:(.*?)(?=Question:|Answer:|$)", self.human_ai_history, re.DOTALL)
+    
+        # # Join captured groups into formatted questions
+        # extracted_questions = "\n".join(f"Question:{question.strip()}" for question in regex_history)
+    
+        # print("extracted_questions: ", extracted_questions)
+        # print("-----------------------------------------------------------------")
+    
         context_aware_template = (
-            "Here are the previous questions user has asked:\n\n"
+            "Here are the questions user has asked:\n\n"
             "Previous-Questions:\n{extracted_questions}\n\n"
             "In this current question '{question}' , "
             "replace pronoun with noun by utilizing the Previous-Questions and provide context aware new question. if there is no Previous-Questions repeat the new question as it is."
             "AI-Question:"
         )
-
-        # print("context_aware_template: ", context_aware_template)
-        
+    
         formatted_template = context_aware_template.format(
-            extracted_questions=extracted_questions,
+            extracted_questions=self.extracted_prompts,
             question=prompt
         )
-        
+    
         context_aware_prompt = self.llm(formatted_template)
         return context_aware_prompt
     
     def generate_context_aware_prompt_lim(self, prompt: str) -> str:
         print("self.human_ai_history_lim: ", self.human_ai_history_lim)
         print("-----------------------------------------------------------------")
-
-        questions = re.findall(r"Question:", self.human_ai_history_lim)
-        answers = re.findall(r"Answer:", self.human_ai_history_lim)
-
-        # Check if the number of occurrences is greater than 3
-        if len(questions) > 8 and len(answers) > 8:
-            # Find the index of the first occurrence of "Question:" and "Answer:"
-            question_index = self.human_ai_history_lim.find("Question:")
-            answer_index = self.human_ai_history_lim.find("Answer:")
-            
-            # Find the end of the first "Answer:" to remove the entire Q&A pair
-            end_of_first_answer = self.human_ai_history_lim.find("Answer:", answer_index + len("Answer:")) if answer_index != -1 else -1
-            
-            if question_index != -1 and end_of_first_answer != -1:
+    
+        questions = re.findall(r"Question:.*?(?=Answer:|$)", self.human_ai_history_lim, re.DOTALL)
+    
+        # Check if the number of occurrences is greater than 8
+        if len(questions) > 8:
+            # Find the end of the first "Question:" to remove the entire Q&A pair
+            end_of_first_question = self.human_ai_history_lim.find("Answer:", self.human_ai_history_lim.find("Question:")) if self.human_ai_history_lim.find("Question:") != -1 else -1
+    
+            if end_of_first_question != -1:
                 # Remove the first Q&A pair
-                self.human_ai_history_lim = self.human_ai_history_lim[end_of_first_answer:].strip()
-
-
-        print("self.human_ai_history_lim after trnucation: ", self.human_ai_history_lim)
-        ("-----------------------------------------------------------------")
-        regex_history = re.findall(r"Question:(.*?)(?:Question:|Answer:|$)", self.human_ai_history_lim, re.DOTALL)
-
+                self.human_ai_history_lim = self.human_ai_history_lim[end_of_first_question:].strip()
+    
+        print("self.human_ai_history_lim after truncation: ", self.human_ai_history_lim)
+        print("-----------------------------------------------------------------")
+    
+        regex_history = re.findall(r"Question:(.*?)(?=Question:|Answer:|$)", self.human_ai_history_lim, re.DOTALL)
+    
         # Join captured groups into formatted questions
         extracted_questions = "\n".join(f"Question:{question.strip()}" for question in regex_history)
-
-        print("extracted_questions :", extracted_questions)
+    
+        print("extracted_questions: ", extracted_questions)
         print("-----------------------------------------------------------------")
-        
+    
         context_aware_template = (
-            "Here are the previous questions user has asked:\n\n"
+            "Here are the questions user has asked:\n\n"
             "Previous-Questions:\n{extracted_questions}\n\n"
             "In this current question '{question}' , "
             "replace pronoun with noun by utilizing the Previous-Questions and provide context aware new question. if there is no Previous-Questions repeat the new question as it is."
             "AI-Question:"
         )
-
-        # print("context_aware_template: ", context_aware_template)
-        
+    
         formatted_template = context_aware_template.format(
             extracted_questions=extracted_questions,
             question=prompt
         )
-        
+    
         context_aware_prompt = self.llm(formatted_template)
-        return context_aware_prompt
+        return context_aware_prompt, extracted_questions
+    
 
     def llm_invoker(self, prompt: str):
         # Generate a context-aware prompt
@@ -171,8 +160,13 @@ Answer:
         print("end_index:", end_index)
         # Extract the AI-Question part
         context_aware_prompt_part = partitioned_prompt[start_index:end_index].strip()
+        print("context_aware_prompt_part: ", context_aware_prompt_part)
 
-        print("Context aware prompt part:", context_aware_prompt_part)
+        if self.extracted_prompts:
+            self.extracted_prompts += f"\n{context_aware_prompt_part}"
+        else:
+            self.extracted_prompts = context_aware_prompt_part
+        print("self.extracted_prompts: ", self.extracted_prompts)
         print("-----------------------------------------------------------------")
 
         if self.vectorstore is None:
@@ -187,6 +181,8 @@ Answer:
         num_tokens = self.count_tokens(formatted_template)
         print(f"Number of tokens: {num_tokens}")
 
+        print("formatted_template :", formatted_template)
+
         # Get response from LLM
         response = self.llm(formatted_template)
 
@@ -194,7 +190,7 @@ Answer:
         llm_response = response[filtered_response_start:].strip()
 
         # Extract `self.human_ai_history` from `response`
-        formatted_response = response.find("</hs>\n------") + len("</hs>\n------")
+        formatted_response = response.find("</ctx>\n------") + len("</ctx>\n------")
         new_history = response[formatted_response:].strip()
 
         # Append new interaction to `self.human_ai_history`
@@ -208,7 +204,8 @@ Answer:
 
     def lim_llm_invoker(self, prompt: str):
         # Generate a context-aware prompt
-        context_aware_prompt = self.generate_context_aware_prompt(prompt)
+        context_aware_prompt, extracted_questions = self.generate_context_aware_prompt(prompt)
+        print("ExytractedQuestion in LIM-LLM invoker :", extracted_questions)
         
         # Get relevant document from vectorstore using context-aware prompt
         print("RelevantDoc ContextAwarePrompt:", context_aware_prompt)
@@ -242,6 +239,8 @@ Answer:
         num_tokens = self.count_tokens(formatted_template)
         print(f"Number of tokens: {num_tokens}")
 
+        print("formatted_template :", formatted_template)
+
         # Get response from LLM
         response = self.llm(formatted_template)
 
@@ -249,7 +248,7 @@ Answer:
         lim_llm_response = response[filtered_response_start:].strip()
 
         # Extract `self.human_ai_history_lim` from `response`
-        formatted_response = response.find("</hs>\n------") + len("</hs>\n------")
+        formatted_response = response.find("</ctx>\n------") + len("</ctx>\n------")
         new_history = response[formatted_response:].strip()
 
         # Append new interaction to `self.human_ai_history_lim`
