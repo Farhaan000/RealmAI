@@ -129,11 +129,14 @@ Answer:
         print(f"Number of tokens: {num_tokens}")
 
         # Get response from LLM
-        response = self.llm(formatted_template)
+        llm_response = self.llm(formatted_template)
+
+        filtered_response_start = llm_response.rfind("Answer:") + len("Answer:")
+        response = llm_response[filtered_response_start:].strip()
 
         # Extract `self.human_ai_history` from `response`
         formatted_response = response.find("</hs>\n------") + len("</hs>\n------")
-        new_history = response[formatted_response:].strip()
+        new_history = llm_response[formatted_response:].strip()
 
         # Append new interaction to `self.human_ai_history`
         if self.human_ai_history:

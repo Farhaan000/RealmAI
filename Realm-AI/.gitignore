@@ -1,0 +1,5 @@
+.env
+Docs
+node_modules
+node_modules/
+/node_modules

@@ -1,0 +1,153 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #101010;
+    font-family: Arial, sans-serif;
+}
+
+.chat-container {
+    width: 90%;
+    height: 90%;
+    background-color: #1c1c1c;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px;
+}
+
+.chat-header {
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    text-align: center;
+}
+
+.chat-body {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto; /* Make chat body scrollable */
+}
+
+.chat-body::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    background-color: #1c1c1c;
+}
+
+.chat-body::-webkit-scrollbar {
+    width: 12px;
+    background-color: #1c1c1c;
+}
+
+.chat-body::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
+    background-color: #2e2e2e;
+}
+
+.message {
+    margin: 10px 0;
+    display: flex;
+    align-items: flex-start;
+}
+
+.message-content {
+    display: flex;
+    align-items: flex-start;
+}
+
+.bot-svg {
+    flex-shrink: 0;
+    margin-right: 16px;
+    margin-top: 9px;
+    margin-left: 13px;
+}
+
+.user-svg {
+    flex-shrink: 0;
+    margin-right: 8px;
+    margin-left: 14px;
+    margin-top: 8px;
+
+}
+
+.bot-text,
+.user-text {
+    flex-grow: 1;
+}
+
+.bot-text p,
+.user-text p {
+    margin: 0;
+    padding: 10px;
+    background-color: #18123b;
+    border-radius: 10px;
+    color: #c5c5c5;
+    word-break: break-word; /* This ensures the text wraps to the next line */
+    border: 2px solid rgb(46 44 67);
+    border-radius: 26px;
+}
+
+.user-message {
+    justify-content: flex-end; /* Align user messages to the right */
+}
+
+.user-message .message-content {
+    flex-direction: row-reverse; /* Place the SVG after the text */
+}
+
+.user-text p {
+    background-color: #2e2e2e; /* Different background color for user messages */
+}
+
+.chat-footer {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-top: 1px solid #1c1c1c;
+    background-color: #1c1c1c;
+}
+
+.chat-footer input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #1c1c1c;
+    border-radius: 12px;
+    margin-right: 10px;
+    color: #bbbbbb;
+    background: #2b2a2a;
+}
+
+.chat-footer input[type="text"]:focus {
+    outline: none;
+}
+
+.chat-footer .file-label {
+    cursor: pointer;
+}
+
+.chat-footer .file-label svg {
+    width: 24px;
+    height: 24px;
+}
+
+.chat-footer .file-input {
+    display: none;
+}
+
+.chat-footer button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.chat-footer button:hover {
+    background-color: #0056b3;
+}
