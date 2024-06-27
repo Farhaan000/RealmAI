@@ -3,6 +3,7 @@ from werkzeug.utils import secure_filename
 import os
 import torch
 from static.llm.llm import LLMInvoker
+from static.llm.lim_llm import LIM_LLMInvoker
 from static.LIM.lim import LIMInvoker
 from PIL import Image
 from torchvision.transforms import functional as F
@@ -10,6 +11,7 @@ from torchvision.transforms import functional as F
 app = Flask(__name__)
 
 llm = LLMInvoker()
+lim_llm = LIM_LLMInvoker()
 lim = LIMInvoker()
 
 # Configuration for file uploads
@@ -58,13 +60,13 @@ def process_image_and_prompt():
         # Process the image 
         image = Image.open(file_path).convert("RGB")
         image_tensor = F.to_tensor(image).unsqueeze(0)  # Add batch dimension
-        lim_response = lim.lim_invoker(image_tensor)
+        lim_response = lim.lim_invoker(image= image_tensor)
 
         # Process the prompt
-        llm_response = llm.llm_invoker(prompt)
+        lim_llm_response = lim_llm.llm_invoker(prompt)
 
         # Combine responses
-        combined_response = f"{lim_response} Also, regarding your prompt: {llm_response}"
+        combined_response = f"{lim_response} Also, regarding your prompt: {lim_llm_response}"
 
         return jsonify({"response": combined_response})
     else:
