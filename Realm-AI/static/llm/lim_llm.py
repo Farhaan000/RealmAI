@@ -29,7 +29,6 @@ Question:
 Answer:
 """
         
-        # Initialize embeddings and LLM once
         self.huggingface_embeddings = HuggingFaceBgeEmbeddings(
             model_name="BAAI/bge-small-en-v1.5",
             model_kwargs={'device': 'cpu'},
@@ -52,11 +51,29 @@ Answer:
     def count_tokens(self, text: str) -> int:
         tokens = self.tokenizer.encode(text)
         return len(tokens)
-        
-    def generate_context_aware_prompt(self, prompt: str) -> str:
-        print("self.human_ai_history: ", self.human_ai_history)
-        print("-----------------------------------------------------------------")
     
+         
+              
+                  
+                     
+                        
+                          
+    def generate_context_aware_prompt(self, prompt: str = None, llm_response = None, llm_contextual_question = None, llm_invoker=None) -> str:
+        print("prompt in LIM_LLMInvoker: ", prompt)
+        print("llm_response in LIM_LLMInvoker: ", llm_response)
+        if prompt is None:
+            prompt = ""
+        if llm_response is not None:
+            self.human_ai_history += f"\nQuestion: {prompt}\nAnswer: {llm_response}"
+            print("LIM LLM self.human_ai_history after adding llm_response in LIM_LLMInvoker: ", llm_response)
+            return
+        print("llm_contextual_question in LIM_LLMInvoker: ", llm_contextual_question)
+        if llm_contextual_question is not None:
+            self.extracted_prompts += f"\n{llm_contextual_question}"
+            print("self.extracted_prompts after adding llm_contextual_question in LIM_LLMInvoker: ", llm_contextual_question)
+        print("LIM LLM self.human_ai_history: ", self.human_ai_history)
+        print("-----------------------------------------------------------------")
+
         questions = re.findall(r"Question:.*?(?=Answer:|$)", self.human_ai_history, re.DOTALL)
     
         # Check if the number of occurrences is greater than 8
@@ -68,16 +85,10 @@ Answer:
                 # Remove the first Q&A pair
                 self.human_ai_history = self.human_ai_history[end_of_first_question:].strip()
     
-        print("self.human_ai_history after truncation: ", self.human_ai_history)
-        print("-----------------------------------------------------------------")
+        # print("self.human_ai_history after truncation: ", self.human_ai_history)
+        # print("-----------------------------------------------------------------")
     
         regex_history = re.findall(r"Question:(.*?)(?=Question:|Answer:|$)", self.human_ai_history, re.DOTALL)
-    
-        # # Join captured groups into formatted questions
-        # extracted_questions = "\n".join(f"Question:{question.strip()}" for question in regex_history)
-    
-        # print("extracted_questions: ", extracted_questions)
-        # print("-----------------------------------------------------------------")
     
         context_aware_template = (
             "Here are the questions user has asked:\n\n"
@@ -93,65 +104,59 @@ Answer:
         )
     
         context_aware_prompt = self.llm(formatted_template)
-        return context_aware_prompt
 
-    def llm_invoker(self, prompt: str):
-        # Generate a context-aware prompt
-        context_aware_prompt = self.generate_context_aware_prompt(prompt)
-        
-        # Get relevant document from vectorstore using context-aware prompt
         print("RelevantDoc ContextAwarePrompt:", context_aware_prompt)
         print("-----------------------------------------------------------------")
         partitioned_prompt = context_aware_prompt.rpartition(
             "replace pronoun with noun by utilizing the Previous-Questions and provide context aware new question. if there is no Previous-Questions repeat the new question as it is."
         )[-1]
-        print("partitioned_prompt: ", partitioned_prompt)
-        ("-----------------------------------------------------------------")
-        # Find the starting index of the AI-Question
+        # print("partitioned_prompt: ", partitioned_prompt)
+        # ("-----------------------------------------------------------------")
         start_index = partitioned_prompt.find("AI-Question:\n") + len("AI-Question:\n")
-        print("start_index:", start_index)
-        # Find the ending index of the AI-Question section
+        # print("start_index:", start_index)
         end_index = partitioned_prompt.find("\n\n", start_index)
-        print("end_index:", end_index)
-        # Extract the AI-Question part
+        # print("end_index:", end_index)
         context_aware_prompt_part = partitioned_prompt[start_index:end_index].strip()
         print("context_aware_prompt_part : ", context_aware_prompt_part)
-
+        print("-----------------------------------------------------------------")
         if self.extracted_prompts:
             self.extracted_prompts += f"\n{context_aware_prompt_part}"
         else:
             self.extracted_prompts = context_aware_prompt_part
-        print("self.extracted_prompts which is now extracted from Context aware prompt part:", self.extracted_prompts)
+        print("LIM LLM self.extracted_prompts which is now extracted from Context aware prompt part:", self.extracted_prompts)
         print("-----------------------------------------------------------------")
+
+        if llm_invoker:
+            llm_invoker.generate_context_aware_prompt(lim_llm_contextual_question= context_aware_prompt_part)
+        return context_aware_prompt_part
+
+    def lim_llm_invoker(self, prompt: str, llm_invoker=None):
+        context_aware_prompt_part = self.generate_context_aware_prompt(prompt, llm_invoker=llm_invoker)
 
         if self.vectorstore is None:
             return "No relevant documents found. FAISS index is not available."
-        
+
         relevant_doc = self.vectorstore.similarity_search(context_aware_prompt_part)
         context = relevant_doc[0].page_content
 
-        # Format the template with the query and current `self.human_ai_history`
         formatted_template = self.template.format(context=context, history=self.human_ai_history, question=prompt)
 
         num_tokens = self.count_tokens(formatted_template)
-        print(f"Number of tokens: {num_tokens}")
+        # print(f"Number of tokens: {num_tokens}")
 
-        print("formatted_template :", formatted_template)
+        # print("formatted_template :", formatted_template)
 
-        # Get response from LLM
         response = self.llm(formatted_template)
 
         filtered_response_start = response.rfind("Answer:") + len("Answer:")
-        llm_response = response[filtered_response_start:].strip()
+        lim_llm_response = response[filtered_response_start:].strip()
 
-        # Extract `self.human_ai_history` from `response`
         formatted_response = response.find("</hs>\n------") + len("</hs>\n------")
         new_history = response[formatted_response:].strip()
 
-        # Append new interaction to `self.human_ai_history`
         if self.human_ai_history:
             self.human_ai_history += f"\n{new_history}"
         else:
             self.human_ai_history = new_history
 
-        return llm_response
+        return lim_llm_response

@@ -34,7 +34,8 @@ def send_message():
     # Check if it's a text message
     if 'message' in data:
         prompt = data.get('message', '')
-        bot_response = llm.llm_invoker(prompt)
+        bot_response = llm.llm_invoker(prompt, lim_llm_invoker=lim_llm)
+        lim_llm.generate_context_aware_prompt(prompt=prompt, llm_response=bot_response, llm_invoker=llm)
         return jsonify({"response": bot_response})
 
     return jsonify({"error": "Invalid request"}), 400
@@ -57,15 +58,16 @@ def process_image_and_prompt():
         
         print(f"File saved to: {file_path}")  # Print the file path for debugging
 
+        
         # Process the image 
         image = Image.open(file_path).convert("RGB")
         image_tensor = F.to_tensor(image).unsqueeze(0)  # Add batch dimension
         lim_response = lim.lim_invoker(image= image_tensor)
 
         # Process the prompt
-        lim_llm_response = lim_llm.llm_invoker(prompt)
+        lim_llm_response = lim_llm.lim_llm_invoker(prompt=prompt, llm_invoker=llm)
 
-        _ = llm.generate_context_aware_prompt(prompt= prompt , lim_llm_response=lim_llm_response)
+        llm.generate_context_aware_prompt(prompt=prompt, lim_llm_response=lim_llm_response, lim_llm_invoker=lim_llm)
 
         # Combine responses
         combined_response = f"{lim_response} Also, regarding your prompt: {lim_llm_response}"
@@ -75,4 +77,4 @@ def process_image_and_prompt():
         return jsonify({'error': 'File type not allowed'}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

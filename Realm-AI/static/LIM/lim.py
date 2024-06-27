@@ -20,12 +20,12 @@ class LIMInvoker:
 
             # Process the image with the feature extractor
             inputs = feature_extractor(images=image, return_tensors="pt")
-            print(f"Feature extractor inputs: {inputs}")
+            # print(f"Feature extractor inputs: {inputs}")
 
             # Get model outputs
             outputs = model(**inputs)
             logits = outputs.logits
-            print(f"Logits: {logits}")
+            # print(f"Logits: {logits}")
 
             # Get the predicted class index
             predicted_class_idx = logits.argmax(-1).item()
