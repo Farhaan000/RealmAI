@@ -61,7 +61,7 @@ def process_image_and_prompt():
         lim_response = lim.lim_invoker(image_tensor)
 
         # Process the prompt
-        llm_response = llm.lim_llm_invoker(prompt)
+        llm_response = llm.llm_invoker(prompt)
 
         # Combine responses
         combined_response = f"{lim_response} Also, regarding your prompt: {llm_response}"
