@@ -53,7 +53,10 @@ Answer:
         tokens = self.tokenizer.encode(text)
         return len(tokens)
         
-    def generate_context_aware_prompt(self, prompt: str) -> str:
+    def generate_context_aware_prompt(self, prompt: str, lim_llm_response = None) -> str:
+        if lim_llm_response is not None:
+            self.human_ai_history += f"\n{prompt}\n{lim_llm_response}"
+            return
         print("self.human_ai_history: ", self.human_ai_history)
         print("-----------------------------------------------------------------")
     

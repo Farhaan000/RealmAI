@@ -65,6 +65,8 @@ def process_image_and_prompt():
         # Process the prompt
         lim_llm_response = lim_llm.llm_invoker(prompt)
 
+        _ = llm.generate_context_aware_prompt(prompt= prompt , lim_llm_response=lim_llm_response)
+
         # Combine responses
         combined_response = f"{lim_response} Also, regarding your prompt: {lim_llm_response}"
 
