@@ -81,7 +81,7 @@ function createImageMessage(imageUrl, sender) {
                 </svg>
             </div>
             <div class="${sender}-text">
-                <img src="${imageUrl}" alt="Uploaded image" style="max-width: 100%; border-radius: 10px;">
+                <img src="${imageUrl}" alt="Uploaded image" class="large-image" style="margin-left: 10px; margin-top: 6px;">
             </div>
         </div>
     `;
@@ -118,13 +118,17 @@ function handleFileUpload(event) {
         imageFile = file;
         const reader = new FileReader();
         reader.onload = function(e) {
-            const chatBody = document.getElementById('chat-body');
             const imageUrl = e.target.result;
-            const userImageMessage = createImageMessage(imageUrl, 'user');
-            chatBody.appendChild(userImageMessage);
-            chatBody.scrollTop = chatBody.scrollHeight;
+            const imagePreviewContainer = document.getElementById('image-preview-container');
+            imagePreviewContainer.innerHTML = ''; // Clear any existing previews
 
-            // Alert the user to enter a prompt
+            const imageElement = document.createElement('img');
+            imageElement.src = imageUrl;
+            imageElement.alt = 'Uploaded image';
+            imageElement.classList.add('small-image');
+
+            imagePreviewContainer.appendChild(imageElement);
+
             alert('You will have to enter the prompt now along with the image..');
         };
         reader.readAsDataURL(file);
@@ -134,6 +138,7 @@ function handleFileUpload(event) {
 function sendMessage() {
     const chatInput = document.getElementById('chat-input');
     const chatBody = document.getElementById('chat-body');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
 
     if (!chatInput || !chatBody) {
         console.error('Chat input or chat body element not found');
@@ -143,8 +148,8 @@ function sendMessage() {
     const message = chatInput.value.trim();
 
     if (imageFile && message) {
-        // Create and append user message
-        const userMessage = createUserMessage(message);
+        // Create and append user message with image preview
+        const userMessage = createUserMessageWithImage(message, imageFile);
         chatBody.appendChild(userMessage);
 
         // Scroll to the bottom of the chat after sending user message
@@ -175,9 +180,10 @@ function sendMessage() {
         // Clear input and reset file input
         chatInput.value = '';
         imageFile = null;
+        imagePreviewContainer.innerHTML = '';
         document.getElementById('file-input').value = '';
     } else if (!message) {
-        alert('You will have to enter the prompt now along with the image..');
+        alert('Please enter your prompt');
     } else {
         // Handle case where only prompt is entered
         if (message) {
@@ -213,4 +219,24 @@ function sendMessage() {
             chatInput.value = '';
         }
     }
+}
+
+function createUserMessageWithImage(messageContent, imageFile) {
+    const userMessage = document.createElement('div');
+    userMessage.classList.add('message', 'user-message');
+    userMessage.innerHTML = `
+        <div class="message-content">
+            <div class="user-svg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#b5afaf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user">
+                    <path d="M20.88 18.09A10 10 0 1 0 12 22a9.71 9.71 0 0 0 8.88-3.91"></path>
+                    <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5z"></path>
+                </svg>
+            </div>
+            <div class="user-text">
+                <img src="${URL.createObjectURL(imageFile)}" alt="Uploaded image" style="display: block; margin-left: auto; margin-bottom: 10px;">
+                <p>${messageContent}</p>
+            </div>
+        </div>
+    `;
+    return userMessage;
 }

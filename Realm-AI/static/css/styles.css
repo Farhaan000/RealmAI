@@ -1,3 +1,7 @@
+body, .message-content, .user-text p, .bot-text p {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 body {
     display: flex;
     justify-content: center;
@@ -116,6 +120,7 @@ body {
     margin-right: 10px;
     color: #bbbbbb;
     background: #2b2a2a;
+    margin-top: -5px;
 }
 
 .chat-footer input[type="text"]:focus {
@@ -142,8 +147,70 @@ body {
     padding: 10px 20px;
     border-radius: 12px;
     cursor: pointer;
+    margin-bottom: 6px;
+
 }
 
 .chat-footer button:hover {
     background-color: #0056b3;
+}
+
+/* Add your existing CSS styles here */
+
+.small-image {
+    width: 2em;
+    height: 2em;
+    border-radius: 8px;
+    margin-left: -5px;
+    margin-top: -1px;
+    cursor: pointer;
+    margin-right: 4px;
+}
+
+
+.large-image {
+    max-width: 300px;
+    max-height: 300px;
+    border-radius: 8px;
+    margin-left: 10px;
+    margin-top: 6px;
+}
+
+/* Additional styles for larger image view */
+.image-preview-container img.large-image {
+    display: none;
+}
+
+.image-preview-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: -2px;
+    margin-bottom: 5px;
+    padding: 5px; /* Optional: Add padding if needed */
+}
+
+
+.image-preview {
+    width: 2em; /* Adjust as needed */
+    height: 2em;
+    border-radius: 10px;
+    margin-right: 10px;
+}
+
+.message img {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    margin-left: 10px;
+    margin-top: 6px;
+    cursor: pointer;
+}
+
+.user-text img {
+    max-width: 80px; /* Ensure the image size is 80x80 pixels */
+    max-height: 80px;
+    display: block;
+    margin-left: auto;
+    margin-bottom: 10px;
 }
