@@ -30,11 +30,24 @@ function createBotMessage(messageContent) {
                 </svg>
             </div>
             <div class="bot-text">
-                <p>${messageContent}</p>
+                <p></p>
             </div>
         </div>
     `;
+    typeEffect(botMessage.querySelector('.bot-text p'), messageContent);
     return botMessage;
+}
+
+function typeEffect(element, text, delay = 30) {
+    let index = 0;
+    function type() {
+        if (index < text.length) {
+            element.innerHTML += text.charAt(index);
+            index++;
+            setTimeout(type, delay);
+        }
+    }
+    type();
 }
 
 function createUserMessage(messageContent) {
