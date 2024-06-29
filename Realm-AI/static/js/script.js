@@ -3,6 +3,9 @@ document.addEventListener('DOMContentLoaded', function() {
     addEventListeners();
 });
 
+let isRequestInProgress = false; // Initialize the flag
+let isTyping = false; // Flag to check if typing effect is in progress
+
 function initializeChat() {
     setTimeout(function() {
         const chatBody = document.getElementById('chat-body');
@@ -39,12 +42,16 @@ function createBotMessage(messageContent) {
 }
 
 function typeEffect(element, text, delay = 30) {
+    isTyping = true;
     let index = 0;
     function type() {
         if (index < text.length) {
             element.innerHTML += text.charAt(index);
             index++;
             setTimeout(type, delay);
+        } else {
+            isTyping = false; // Typing effect is done
+            isRequestInProgress = false; // Allow sending messages again
         }
     }
     type();
@@ -129,13 +136,18 @@ function handleFileUpload(event) {
 
             imagePreviewContainer.appendChild(imageElement);
 
-            alert('You will have to enter the prompt now along with the image..');
+            alert('You will have to enter the prompt now along with the image.');
         };
         reader.readAsDataURL(file);
     }
 }
 
 function sendMessage() {
+    if (isRequestInProgress || isTyping) {
+        alert('Please wait for the current response to complete before sending a new message.');
+        return;
+    }
+
     const chatInput = document.getElementById('chat-input');
     const chatBody = document.getElementById('chat-body');
     const imagePreviewContainer = document.getElementById('image-preview-container');
@@ -159,6 +171,8 @@ function sendMessage() {
         formData.append('file', imageFile);
         formData.append('prompt', message);
 
+        isRequestInProgress = true; // Set the flag to true
+
         // Send the combined data to the backend
         fetch('/process-image-and-prompt', {
             method: 'POST',
@@ -174,8 +188,13 @@ function sendMessage() {
 
             // Scroll to the bottom of the chat after bot response
             chatBody.scrollTop = chatBody.scrollHeight;
+
+            // isRequestInProgress will be reset in typeEffect function
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error:', error);
+            isRequestInProgress = false; // Reset the flag even on error
+        });
 
         // Clear input and reset file input
         chatInput.value = '';
@@ -193,6 +212,8 @@ function sendMessage() {
 
             // Scroll to the bottom of the chat after sending user message
             chatBody.scrollTop = chatBody.scrollHeight;
+
+            isRequestInProgress = true; // Set the flag to true
 
             // Fetch bot response from backend
             fetch('/send-message', {
@@ -212,8 +233,13 @@ function sendMessage() {
 
                 // Scroll to the bottom of the chat after bot response
                 chatBody.scrollTop = chatBody.scrollHeight;
+
+                // isRequestInProgress will be reset in typeEffect function
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+                isRequestInProgress = false; // Reset the flag even on error
+            });
 
             // Clear input after sending message
             chatInput.value = '';

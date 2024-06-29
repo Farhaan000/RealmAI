@@ -14,7 +14,7 @@ class LLMInvoker:
         self.human_ai_history = ""
         self.extracted_prompts = ""
         self.template = """
-Use the following context (delimited by <ctx></ctx>) and the chat history (delimited by <hs></hs>) to answer the question:
+Use the following context (delimited by <ctx></ctx>) and the chat history (delimited by <hs></hs>) to answer the question, if the answer is not found in the context and chat history say "Please ask questions relevant to Farhaan!":
 ------
 <ctx>
 {context}
