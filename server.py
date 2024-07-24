@@ -76,4 +76,4 @@ def process_image_and_prompt():
         return jsonify({'error': 'File type not allowed'}), 400
 
 if __name__ == '__main__':
-    app.run(port=5001)
+    app.run()
