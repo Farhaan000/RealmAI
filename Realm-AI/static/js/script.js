@@ -14,7 +14,7 @@ function initializeChat() {
             return;
         }
 
-        const botMessage = createBotMessage("Hello there! I am here to answer questions specifically about Farhaan Pasha. You can chat with me via images as well 🤗");
+        const botMessage = createBotMessage("Hello there! I am here to answer questions specifically about Farhaan. You can chat with me via images as well 🤗");
         chatBody.appendChild(botMessage);
         chatBody.scrollTop = chatBody.scrollHeight;
     }, 1000);
