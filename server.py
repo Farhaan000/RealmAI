@@ -31,7 +31,6 @@ def send_message():
     data = request.json
     print("Received data:", data)
 
-    # Check if it's a text message
     if 'message' in data:
         prompt = data.get('message', '')
         bot_response = llm.llm_invoker(prompt, lim_llm_invoker=lim_llm)
@@ -56,12 +55,12 @@ def process_image_and_prompt():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
         
-        print(f"File saved to: {file_path}")  # Print the file path for debugging
+        print(f"File saved to: {file_path}")
 
         
         # Process the image 
         image = Image.open(file_path).convert("RGB")
-        image_tensor = F.to_tensor(image).unsqueeze(0)  # Add batch dimension
+        image_tensor = F.to_tensor(image).unsqueeze(0)
         lim_response = lim.lim_invoker(image= image_tensor)
 
         # Process the prompt
