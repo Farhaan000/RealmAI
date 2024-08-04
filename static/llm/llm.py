@@ -127,12 +127,14 @@ Answer:
 
     def llm_invoker(self, prompt: str, lim_llm_invoker=None):
         context_aware_prompt_part = self.generate_context_aware_prompt(prompt, lim_llm_invoker=lim_llm_invoker)
+        print("entire context_aware_prompt_part before performing similarity_search : ", context_aware_prompt_part)
         
         if self.vectorstore is None:
             return "No relevant documents found. FAISS index is not available."
         
         relevant_doc = self.vectorstore.similarity_search(context_aware_prompt_part)
         context = relevant_doc[0].page_content
+        print("entire context after performing similarity_search : ", context)
 
         formatted_template = self.template.format(context=context, history=self.human_ai_history, question=prompt)
 

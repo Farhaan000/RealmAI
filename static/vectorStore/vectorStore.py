@@ -15,11 +15,12 @@ from langchain.prompts import PromptTemplate
 from langchain.memory import ConversationBufferMemory
 from langchain_community.vectorstores import FAISS
 from urllib.request import urlretrieve
-from langchain_community.document_loaders import PyPDFDirectoryLoader
+from langchain_community.document_loaders import PyPDFDirectoryLoader, DirectoryLoader
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 
 def DocSplitter():
-    loader = PyPDFDirectoryLoader("./Docs/")
+    # loader = PyPDFDirectoryLoader("./Docs_Pdf/")
+    loader = DirectoryLoader("./Docs_Word/")
     print("Loader: ", loader)
     docs_before_split = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(
@@ -39,6 +40,7 @@ def Embeddings(splitted_doc):
     
     vectorstore = FAISS.from_documents(splitted_doc, huggingface_embeddings)
     vectorstore.save_local("faiss_index")
+    print("fiass_index created successfully")
 
 splitted_doc = DocSplitter()
 Embeddings(splitted_doc)
