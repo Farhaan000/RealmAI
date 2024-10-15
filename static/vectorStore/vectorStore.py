@@ -19,13 +19,13 @@ from langchain_community.document_loaders import PyPDFDirectoryLoader, Directory
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 
 def DocSplitter():
-    # loader = PyPDFDirectoryLoader("./Docs_Pdf/")
-    loader = DirectoryLoader("./Docs_Word/")
+    loader = PyPDFDirectoryLoader("./Docs_Pdf/")
+    # loader = DirectoryLoader("./Docs_Word/")
     print("Loader: ", loader)
     docs_before_split = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size = 700,
-        chunk_overlap  = 50,
+        chunk_size = 4000,
+        chunk_overlap  = 0,
     )
     docs_after_split = text_splitter.split_documents(docs_before_split)
     print("docs_after_split :", docs_after_split)

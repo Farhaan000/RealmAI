@@ -10,3 +10,5 @@ langchain_community
 pypdf
 tiktoken
 torchvision
+flask
+openai

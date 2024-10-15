@@ -36,7 +36,7 @@ Answer:
 
         self.llm = HuggingFaceHub(
             repo_id="mistralai/mixtral-8x7b-instruct-v0.1",
-            huggingfacehub_api_token=os.getenv("HUGGINGFACEHUB_API_TOKEN"),
+            huggingfacehub_api_token="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",
             model_kwargs={"temperature": 0.1, "max_length": 1000})
 
         faiss_index_path = Path("faiss_index/index.faiss")
